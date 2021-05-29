@@ -1,4 +1,4 @@
-module github.com/sinker
+module github.com/thtg88/sinker
 
 go 1.16
 
