@@ -30,7 +30,7 @@ Make sure to create a user in AWS IAM that has read and write access to your S3 
 }
 ```
 
-## Usage
+## Setup
 
 Clone the project on your machine:
 
@@ -45,3 +45,9 @@ Make sure to set the correct env variables:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`: the access key ID and secret of an AWS user which has read and write access on your AWS S3 bucket
 - `AWS_BUCKET`: the actual S3 bucket you want to write to
 - `SINKER_BASE_PATH`: the base directory on your machine, which you want to keep synchronised
+
+## Usage
+
+```bash
+go run .
+```
