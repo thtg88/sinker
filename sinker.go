@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -91,6 +95,8 @@ func watchPeriodically(directory string, interval int) {
 	}
 }
 
+// handleFsEvent handles a file system event, uploading a file to S3,
+// and updates the state backend
 func handleFsEvent(event fsnotify.Event) {
 	var err error
 
@@ -118,7 +124,23 @@ func handleFsEvent(event fsnotify.Event) {
 		return
 	}
 
+	_, err = updateState(event)
+	if err != nil {
+		fmt.Println("ERROR", err, event.Name)
+	}
+
 	fmt.Println("file updated", event.Name)
+}
+
+// updateState updates the state backend
+func updateState(event fsnotify.Event) ([]byte, error) {
+	values := map[string]string{
+		"path": relativePath(event.Name),
+		"type": event.Op.String(),
+	}
+	jsonValue, _ := json.Marshal(values)
+
+	return sinkerApiRequest("POST", os.Getenv("SINKER_API_STORE_EVENT_PATH"), jsonValue)
 }
 
 // removeFile removes a file from a given absolute path from the S3 bucket
