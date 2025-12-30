@@ -4,10 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/fsnotify/fsnotify"
-
-	"github.com/thtg88/sinker/internal/uploaders"
 )
 
 type updateStateRequest struct {
@@ -16,10 +12,10 @@ type updateStateRequest struct {
 }
 
 // UpdateState updates the state backend
-func (c *APIClient) UpdateState(event fsnotify.Event, sinkerAPIDeviceID string) ([]byte, error) {
+func (c *APIClient) UpdateState(relativePath string, operation string, sinkerAPIDeviceID string) ([]byte, error) {
 	request := updateStateRequest{
-		Path: uploaders.RelativePath(event.Name),
-		Type: event.Op.String(),
+		Path: relativePath,
+		Type: operation,
 	}
 	jsonValue, err := json.Marshal(request)
 	if err != nil {

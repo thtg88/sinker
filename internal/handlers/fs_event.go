@@ -49,7 +49,7 @@ func (h *FSEventHandler) Handle(event fsnotify.Event, sinkerAPIDeviceID string) 
 		return
 	}
 
-	_, err = h.sinkerAPI.UpdateState(event, sinkerAPIDeviceID)
+	_, err = h.sinkerAPI.UpdateState(uploaders.RelativePath(event.Name), opString, sinkerAPIDeviceID)
 	if err != nil {
 		h.logger.Printf("[ERROR] sinkerapi updatestate operation: %s event name: %s: %v", opString, event.Name, err)
 	}

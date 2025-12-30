@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-
-	"github.com/fsnotify/fsnotify"
 
 	"github.com/thtg88/sinker/internal/config"
 )
 
 type API interface {
 	RegisterDevice() (string,error)
-	UpdateState(event fsnotify.Event, sinkerAPIDeviceID string) ([]byte, error)
+	UpdateState(relativePath string, operation string, sinkerAPIDeviceID string) ([]byte, error)
 }
 
 type APIClient struct{
