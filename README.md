@@ -49,5 +49,5 @@ Make sure to set the correct env variables:
 ## Usage
 
 ```bash
-go run .
+go run cmd/sinker/main.go
 ```
