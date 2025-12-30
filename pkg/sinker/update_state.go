@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/thtg88/sinker/uploaders"
+
+	"github.com/thtg88/sinker/internal/uploaders"
 )
 
 type updateStateRequest struct {

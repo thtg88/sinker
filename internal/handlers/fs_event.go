@@ -5,8 +5,8 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
+	"github.com/thtg88/sinker/internal/uploaders"
 	"github.com/thtg88/sinker/pkg/sinker"
-	"github.com/thtg88/sinker/uploaders"
 )
 
 type FSEventHandler struct {
