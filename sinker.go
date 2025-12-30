@@ -32,7 +32,9 @@ func run() error {
 
 	cfg := config.Load()
 
-	sinkerAPIDeviceID, err = sinker.RegisterDevice()
+	sinkerAPIClient := sinker.NewAPIClient(cfg.SinkerAPI.StoreEventPath)
+
+	sinkerAPIDeviceID, err = sinkerAPIClient.RegisterDevice()
 	if err != nil {
 		return fmt.Errorf("sinker register device: %v",err)
 	}
@@ -55,7 +57,7 @@ func run() error {
 		for {
 			select {
 			case event := <-fsNotifyWatcher.Events:
-				handlers.HandleFsEvent(event, sinkerAPIDeviceID)
+				handlers.HandleFsEvent(sinkerAPIClient, event, sinkerAPIDeviceID)
 
 			case err := <-fsNotifyWatcher.Errors:
 				fmt.Println("ERROR", err)

@@ -10,7 +10,7 @@ import (
 
 // HandleFsEvent handles a file system event, uploading a file to S3,
 // and updates the state backend
-func HandleFsEvent(event fsnotify.Event, sinkerAPIDeviceID string) {
+func HandleFsEvent(sinkerAPIClient sinker.API,event fsnotify.Event, sinkerAPIDeviceID string) {
 	var err error
 
 	// Skip CHMOD event as macOS sends 2 for every WRITE event (before and after)
@@ -37,7 +37,7 @@ func HandleFsEvent(event fsnotify.Event, sinkerAPIDeviceID string) {
 		return
 	}
 
-	_, err = sinker.UpdateState(event, sinkerAPIDeviceID)
+	_, err = sinkerAPIClient.UpdateState(event, sinkerAPIDeviceID)
 	if err != nil {
 		fmt.Println("ERROR", err, event.Name)
 	}
