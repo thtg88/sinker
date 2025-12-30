@@ -2,35 +2,43 @@ package sinker
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"os"
 )
 
+const deviceName string = "Sinker macOS client"
+
+type deviceRequest struct {
+	Name string `json:"name"`
+}
+
+type deviceResponse struct {
+	Data *device `json:"data"`
+}
+
+type device struct {
+	Uuid string `json:"uuid"`
+	Name string `json:"name"`
+}
+
 func (c *APIClient) RegisterDevice() (string, error) {
-	type Device struct {
-		Uuid string `json:"uuid"`
-		Name string `json:"name"`
-	}
-	type DeviceResponse struct {
-		Data Device `json:"data"`
-	}
-	var response DeviceResponse
-
-	values := map[string]string{"name": "Sinker macOS client"}
-	jsonValue, _ := json.Marshal(values)
-
-	body, err := sinkerApiRequest("POST", os.Getenv("SINKER_API_STORE_DEVICE_PATH"), jsonValue, "")
+	request := deviceRequest{Name: deviceName}
+	requestBytes, err := json.Marshal(request)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("json marshal: %v", err)
 	}
 
-	if err := json.Unmarshal(body, &response); err != nil {
-		return "", err
+	responseBytes, err := c.sinkerApiRequest("POST", c.config.StoreDevicePath, requestBytes, "")
+	if err != nil {
+		return "", fmt.Errorf("sinker api request: %v", err)
+	}
+
+	var response deviceResponse
+	if err := json.Unmarshal(responseBytes, &response); err != nil {
+		return "", fmt.Errorf("json unmarshal: %v", err)
 	}
 	if response.Data.Uuid == "" {
-		return "", errors.New(fmt.Sprint("Could not register device. ERROR ", string(body)))
+		return "", fmt.Errorf("empty response data uuid: %s", string(responseBytes))
 	}
 
-	return string(response.Data.Uuid), nil
+	return response.Data.Uuid, nil
 }

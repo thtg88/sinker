@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/fsnotify/fsnotify"
@@ -31,8 +32,8 @@ func run() error {
 	}
 
 	cfg := config.Load()
-
-	sinkerAPIClient := sinker.NewAPIClient(cfg.SinkerAPI.StoreEventPath)
+	httpClient := &http.Client{}
+	sinkerAPIClient := sinker.NewAPIClient(httpClient, cfg.SinkerAPI)
 
 	sinkerAPIDeviceID, err = sinkerAPIClient.RegisterDevice()
 	if err != nil {
