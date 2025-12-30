@@ -45,8 +45,8 @@ func run() error {
 		return fmt.Errorf("awsconfig loaddefaultconfig: %v", err)
 	}
 
-	s3Client := s3.NewFromConfig(s3Config, func(o *s3.Options) { o.Region = "eu-west-1" })
-	fileUploader := uploaders.NewS3FileUploader(s3Client, cfg.Sinker.S3BucketName)
+	s3Client := s3.NewFromConfig(s3Config, func(o *s3.Options) { o.Region = cfg.AWS.Region })
+	fileUploader := uploaders.NewS3FileUploader(s3Client, cfg.AWS.S3Bucket)
 	handler := handlers.NewFSEventHandler(fileUploader, sinkerAPIClient, logger)
 
 	sinkerAPIDeviceID, err = sinkerAPIClient.RegisterDevice()

@@ -2,16 +2,25 @@ package config
 
 import "os"
 
-const WatcherIntervalSeconds = 5
+const (
+	AWSRegionEUWest1 = "eu-west-1"
+
+	WatcherIntervalSeconds = 5
+)
 
 type Config struct{
+	AWS				*AWS
 	Sinker 		*Sinker
 	SinkerAPI *SinkerAPI
 }
 
+type AWS struct {
+	Region		string
+	S3Bucket	string
+}
+
 type Sinker struct{
 	BasePath								string
-	S3BucketName						string
 	WatcherIntervalSeconds	int64
 }
 
@@ -32,10 +41,13 @@ type SinkerAPIHeaderNames struct {
 
 func Load() *Config {
 	return &Config{
+		AWS: &AWS{
+			Region:   AWSRegionEUWest1,
+			S3Bucket: os.Getenv("AWS_BUCKET"),
+		},
 		Sinker: &Sinker{
-			BasePath:			os.Getenv("SINKER_BASE_PATH"),
-			S3BucketName:	os.Getenv("AWS_BUCKET"),
-			WatcherIntervalSeconds: WatcherIntervalSeconds,
+			BasePath:								os.Getenv("SINKER_BASE_PATH"),
+			WatcherIntervalSeconds:	WatcherIntervalSeconds,
 		},
 		SinkerAPI: &SinkerAPI{
 			APIKey:						os.Getenv("SINKER_API_KEY_HEADER_VALUE"),
