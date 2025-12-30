@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -34,7 +35,7 @@ func run() error {
 
 	logger := log.New(os.Stderr, "", log.LstdFlags)
 	cfg := config.Load()
-	httpClient := &http.Client{}
+	httpClient := &http.Client{Timeout: time.Duration(cfg.SinkerAPI.TimeoutMilliSeconds) * time.Millisecond}
 	sinkerAPIClient := sinker.NewAPIClient(httpClient, cfg.SinkerAPI, logger)
 
 	s3Config, err := awsconfig.LoadDefaultConfig(context.Background())

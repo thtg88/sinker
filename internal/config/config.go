@@ -5,6 +5,8 @@ import "os"
 const (
 	AWSRegionEUWest1 = "eu-west-1"
 
+	SinkerAPITimeoutMilliseconds = 1000
+
 	WatcherIntervalSeconds = 5
 )
 
@@ -25,12 +27,13 @@ type Sinker struct{
 }
 
 type SinkerAPI struct {
-	APIKey					string
-	BaseURL					string
-	HeaderNames			*SinkerAPIHeaderNames
-	StoreDevicePath string
-	StoreEventPath	string
-	UserID					string
+	APIKey							string
+	BaseURL							string
+	HeaderNames					*SinkerAPIHeaderNames
+	StoreDevicePath 		string
+	StoreEventPath			string
+	TimeoutMilliSeconds	int64
+	UserID							string
 }
 
 type SinkerAPIHeaderNames struct {
@@ -50,11 +53,12 @@ func Load() *Config {
 			WatcherIntervalSeconds:	WatcherIntervalSeconds,
 		},
 		SinkerAPI: &SinkerAPI{
-			APIKey:						os.Getenv("SINKER_API_KEY_HEADER_VALUE"),
-			BaseURL:					os.Getenv("SINKER_API_BASE_URL"),
-			StoreDevicePath:	os.Getenv("SINKER_API_STORE_DEVICE_PATH"),
-			StoreEventPath:		os.Getenv("SINKER_API_STORE_EVENT_PATH"),
-			UserID:						os.Getenv("SINKER_API_USER_ID_HEADER_VALUE"),
+			APIKey:								os.Getenv("SINKER_API_KEY_HEADER_VALUE"),
+			BaseURL:							os.Getenv("SINKER_API_BASE_URL"),
+			StoreDevicePath:			os.Getenv("SINKER_API_STORE_DEVICE_PATH"),
+			StoreEventPath:				os.Getenv("SINKER_API_STORE_EVENT_PATH"),
+			TimeoutMilliSeconds:	SinkerAPITimeoutMilliseconds,
+			UserID:								os.Getenv("SINKER_API_USER_ID_HEADER_VALUE"),
 			HeaderNames: &SinkerAPIHeaderNames{
 				APIKey:   os.Getenv("SINKER_API_KEY_HEADER_NAME"),
 				DeviceID: os.Getenv("SINKER_API_DEVICE_ID_HEADER_NAME"),
