@@ -19,9 +19,6 @@ import (
 	"github.com/thtg88/sinker/pkg/sinker"
 )
 
-var watcher *fsnotify.Watcher
-var sinkerAPIDeviceID string
-
 func main() {
 	if err := run(); err != nil {
 		log.Printf("[ERROR] %v", err)
@@ -49,7 +46,7 @@ func run() error {
 	fileUploader := uploaders.NewS3FileUploader(s3Client, cfg.AWS.S3Bucket)
 	handler := handlers.NewFSEventHandler(fileUploader, sinkerAPIClient, logger)
 
-	sinkerAPIDeviceID, err = sinkerAPIClient.RegisterDevice()
+	sinkerAPIDeviceID, err := sinkerAPIClient.RegisterDevice()
 	if err != nil {
 		return fmt.Errorf("sinker register device: %v",err)
 	}
