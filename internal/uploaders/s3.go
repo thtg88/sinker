@@ -11,17 +11,20 @@ import (
 )
 
 type FileUploader interface {
+	RelativePath(path string) string
 	RemoveFile(ctx context.Context, path string) error
 	UploadFile(ctx context.Context, path string) error
 }
 
 type S3FileUploader struct {
+	basePath	string
 	bucket		string
 	s3Client	*s3.Client
 }
 
-func NewS3FileUploader(s3Client *s3.Client, bucket string) *S3FileUploader {
+func NewS3FileUploader(s3Client *s3.Client, bucket string, basePath string) *S3FileUploader {
 	return &S3FileUploader{
+		basePath:	basePath,
 		bucket:		bucket,
 		s3Client:	s3Client,
 	}
@@ -37,7 +40,7 @@ func (u *S3FileUploader) UploadFile(ctx context.Context, path string) error {
 
 	_, err = u.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(u.bucket),
-		Key:    aws.String(RelativePath(path)),
+		Key:    aws.String(u.RelativePath(path)),
 		Body:   file,
 	})
 	if err != nil {
@@ -52,7 +55,7 @@ func (u *S3FileUploader) UploadFile(ctx context.Context, path string) error {
 func (u *S3FileUploader) RemoveFile(ctx context.Context, path string) error {
 	_, err := u.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(u.bucket),
-		Key:    aws.String(RelativePath(path)),
+		Key:    aws.String(u.RelativePath(path)),
 	})
 	if err != nil {
 		return fmt.Errorf("s3 client deleteobject: %v", err)
@@ -62,6 +65,6 @@ func (u *S3FileUploader) RemoveFile(ctx context.Context, path string) error {
 }
 
 // RelativePath returns the relative path of a file from a given aboslute path string
-func RelativePath(path string) string {
-	return strings.Trim(strings.Replace(path, os.Getenv("SINKER_BASE_PATH"), "", 1), "/")
+func (u *S3FileUploader) RelativePath(path string) string {
+	return strings.Trim(strings.Replace(path, u.basePath, "", 1), "/")
 }

@@ -43,7 +43,7 @@ func run() error {
 	}
 
 	s3Client := s3.NewFromConfig(s3Config, func(o *s3.Options) { o.Region = cfg.AWS.Region })
-	fileUploader := uploaders.NewS3FileUploader(s3Client, cfg.AWS.S3Bucket)
+	fileUploader := uploaders.NewS3FileUploader(s3Client, cfg.AWS.S3Bucket, cfg.Sinker.BasePath)
 	handler := handlers.NewFSEventHandler(fileUploader, sinkerAPIClient, logger)
 
 	sinkerAPIDeviceID, err := sinkerAPIClient.RegisterDevice()
