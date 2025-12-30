@@ -4,13 +4,22 @@ import (
 	"fmt"
 
 	"github.com/fsnotify/fsnotify"
+
 	"github.com/thtg88/sinker/pkg/sinker"
 	"github.com/thtg88/sinker/uploaders"
 )
 
+type FSEventHandler struct {
+	sinkerAPI sinker.API
+}
+
+func NewFSEventHandler(sinkerAPI sinker.API) *FSEventHandler {
+	return &FSEventHandler{sinkerAPI: sinkerAPI}
+}
+
 // HandleFsEvent handles a file system event, uploading a file to S3,
 // and updates the state backend
-func HandleFsEvent(sinkerAPIClient sinker.API,event fsnotify.Event, sinkerAPIDeviceID string) {
+func (h *FSEventHandler) Handle(event fsnotify.Event, sinkerAPIDeviceID string) {
 	var err error
 
 	// Skip CHMOD event as macOS sends 2 for every WRITE event (before and after)
@@ -37,7 +46,7 @@ func HandleFsEvent(sinkerAPIClient sinker.API,event fsnotify.Event, sinkerAPIDev
 		return
 	}
 
-	_, err = sinkerAPIClient.UpdateState(event, sinkerAPIDeviceID)
+	_, err = h.sinkerAPI.UpdateState(event, sinkerAPIDeviceID)
 	if err != nil {
 		fmt.Println("ERROR", err, event.Name)
 	}
