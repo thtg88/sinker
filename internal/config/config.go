@@ -2,14 +2,17 @@ package config
 
 import "os"
 
+const WatcherIntervalSeconds = 5
+
 type Config struct{
 	Sinker 		*Sinker
 	SinkerAPI *SinkerAPI
 }
 
 type Sinker struct{
-	BasePath			string
-	S3BucketName	string
+	BasePath								string
+	S3BucketName						string
+	WatcherIntervalSeconds	int64
 }
 
 type SinkerAPI struct {
@@ -32,6 +35,7 @@ func Load() *Config {
 		Sinker: &Sinker{
 			BasePath:			os.Getenv("SINKER_BASE_PATH"),
 			S3BucketName:	os.Getenv("AWS_BUCKET"),
+			WatcherIntervalSeconds: WatcherIntervalSeconds,
 		},
 		SinkerAPI: &SinkerAPI{
 			APIKey:						os.Getenv("SINKER_API_KEY_HEADER_VALUE"),

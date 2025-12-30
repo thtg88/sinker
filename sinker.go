@@ -63,7 +63,7 @@ func run() error {
 
 	watcher := watchers.NewWatcher(fsNotifyWatcher)
 
-	go watcher.WatchPeriodically(cfg.Sinker.BasePath, 5)
+	go watcher.WatchPeriodically(cfg.Sinker.BasePath, cfg.Sinker.WatcherIntervalSeconds)
 
 	done := make(chan bool)
 

@@ -19,13 +19,13 @@ func NewWatcher(watcher *fsnotify.Watcher) *Watcher {
 
 // WatchPeriodically adds sub directories peridically to watch, with the help
 // of fsnotify which maintains a directory map rather than slice.
-func (w *Watcher) WatchPeriodically(directory string, interval int) {
+func (w *Watcher) WatchPeriodically(directory string, intervalSeconds int64) {
 	done := make(chan struct{})
 	go func() {
 		done <- struct{}{}
 	}()
 
-	ticker := time.NewTicker(time.Duration(interval) * time.Second)
+	ticker := time.NewTicker(time.Duration(intervalSeconds) * time.Second)
 	defer ticker.Stop()
 
 	for ; ; <-ticker.C {
