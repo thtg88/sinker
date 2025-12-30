@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/fsnotify/fsnotify"
 
@@ -12,13 +12,15 @@ import (
 
 type FSEventHandler struct {
 	fileUploader	uploaders.FileUploader
+	logger				*log.Logger
 	sinkerAPI			sinker.API
 }
 
-func NewFSEventHandler(fileUploader uploaders.FileUploader, sinkerAPI sinker.API) *FSEventHandler {
+func NewFSEventHandler(fileUploader uploaders.FileUploader, sinkerAPI sinker.API, logger *log.Logger) *FSEventHandler {
 	return &FSEventHandler{
 		fileUploader: fileUploader,
-		sinkerAPI: sinkerAPI,
+		logger:				logger,
+		sinkerAPI:		sinkerAPI,
 	}
 }
 
@@ -27,40 +29,30 @@ func NewFSEventHandler(fileUploader uploaders.FileUploader, sinkerAPI sinker.API
 func (h *FSEventHandler) Handle(event fsnotify.Event, sinkerAPIDeviceID string) {
 	var err error
 
-	// Skip CHMOD event as macOS sends 2 for every WRITE event (before and after)
-	if event.Op.String() == "CHMOD" {
+	ctx := context.Background()
+
+	opString := event.Op.String()
+
+	h.logger.Printf("event: %s", event.String())
+
+	if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) {
+		err = h.fileUploader.UploadFile(ctx, event.Name)
+	} else if event.Has(fsnotify.Remove) {
+		err = h.fileUploader.RemoveFile(ctx, event.Name)
+	} else if event.Has(fsnotify.Chmod) {
+		// Skip CHMOD event as macOS sends 2 for every WRITE event (before and after)
 		return
 	}
 
-	ctx := context.Background()
-
-	// TODO: replace with logger
-	fmt.Printf("EVENT! %#v\n", event.String())
-
-	if event.Op.String() == "CREATE" {
-		err = h.fileUploader.UploadFile(ctx, event.Name)
-	}
-
-	if event.Op.String() == "REMOVE" {
-		err = h.fileUploader.RemoveFile(ctx, event.Name)
-	}
-
-	if event.Op.String() == "WRITE" {
-		err = h.fileUploader.UploadFile(ctx, event.Name)
-	}
-
 	if err != nil {
-		// TODO: replace with logger
-		fmt.Println("ERROR", err, event.Name)
+		h.logger.Printf("[ERROR] fileuploader operation: %s event name: %s: %v", opString, event.Name, err)
 		return
 	}
 
 	_, err = h.sinkerAPI.UpdateState(event, sinkerAPIDeviceID)
 	if err != nil {
-		// TODO: replace with logger
-		fmt.Println("ERROR", err, event.Name)
+		h.logger.Printf("[ERROR] sinkerapi updatestate operation: %s event name: %s: %v", opString, event.Name, err)
 	}
 
-	// TODO: replace with logger
-	fmt.Println("file updated", event.Name)
+	h.logger.Printf("file updated operation: %s event name: %s", opString, event.Name)
 }

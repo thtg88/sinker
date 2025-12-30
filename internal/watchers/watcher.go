@@ -2,6 +2,7 @@ package watchers
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -10,11 +11,15 @@ import (
 )
 
 type Watcher struct{
-	watcher *fsnotify.Watcher
+	logger	*log.Logger
+	watcher	*fsnotify.Watcher
 }
 
-func NewWatcher(watcher *fsnotify.Watcher) *Watcher {
-	return &Watcher{watcher: watcher}
+func NewWatcher(watcher *fsnotify.Watcher, logger *log.Logger) *Watcher {
+	return &Watcher{
+		logger:		logger,
+		watcher:	watcher,
+	}
 }
 
 // WatchPeriodically adds sub directories peridically to watch, with the help
@@ -32,7 +37,7 @@ func (w *Watcher) WatchPeriodically(directory string, intervalSeconds int64) {
 		<-done
 
 		if err := filepath.Walk(directory, w.watchDir); err != nil {
-			fmt.Println(err)
+			w.logger.Printf("[ERROR] filepath walk: %v", err)
 		}
 
 		go func() {
@@ -45,8 +50,12 @@ func (w *Watcher) WatchPeriodically(directory string, intervalSeconds int64) {
 func (w *Watcher) watchDir(path string, fi os.FileInfo, err error) error {
 	// since fsnotify can watch all the files in a directory, watchers only need
 	// to be added to each nested directory
-	if fi.Mode().IsDir() {
-		return w.watcher.Add(path)
+	if !fi.Mode().IsDir() {
+		return nil
+	}
+
+	if err := w.watcher.Add(path); err != nil {
+		return fmt.Errorf("watcher add: %v", err)
 	}
 
 	return nil

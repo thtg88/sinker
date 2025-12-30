@@ -35,9 +35,10 @@ func run() error {
 		return fmt.Errorf("godotenv load: %v", err)
 	}
 
+	logger := log.New(os.Stderr, "", log.LstdFlags)
 	cfg := config.Load()
 	httpClient := &http.Client{}
-	sinkerAPIClient := sinker.NewAPIClient(httpClient, cfg.SinkerAPI)
+	sinkerAPIClient := sinker.NewAPIClient(httpClient, cfg.SinkerAPI, logger)
 
 	s3Config, err := awsconfig.LoadDefaultConfig(context.Background())
 	if err != nil {
@@ -46,7 +47,7 @@ func run() error {
 
 	s3Client := s3.NewFromConfig(s3Config, func(o *s3.Options) { o.Region = "eu-west-1" })
 	fileUploader := uploaders.NewS3FileUploader(s3Client, cfg.Sinker.S3BucketName)
-	handler := handlers.NewFSEventHandler(fileUploader, sinkerAPIClient)
+	handler := handlers.NewFSEventHandler(fileUploader, sinkerAPIClient, logger)
 
 	sinkerAPIDeviceID, err = sinkerAPIClient.RegisterDevice()
 	if err != nil {
@@ -61,7 +62,7 @@ func run() error {
 	}
 	defer fsNotifyWatcher.Close()
 
-	watcher := watchers.NewWatcher(fsNotifyWatcher)
+	watcher := watchers.NewWatcher(fsNotifyWatcher, logger)
 
 	go watcher.WatchPeriodically(cfg.Sinker.BasePath, cfg.Sinker.WatcherIntervalSeconds)
 
