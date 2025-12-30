@@ -13,14 +13,13 @@ type updateStateRequest struct {
 
 // UpdateState updates the state backend
 func (c *APIClient) UpdateState(relativePath string, operation string, sinkerAPIDeviceID string) ([]byte, error) {
-	request := updateStateRequest{
+	requestBytes, err := json.Marshal(&updateStateRequest{
 		Path: relativePath,
 		Type: operation,
-	}
-	jsonValue, err := json.Marshal(request)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("json marshal: %v", err)
 	}
 
-	return c.sinkerApiRequest(http.MethodPost, c.config.StoreEventPath, jsonValue, sinkerAPIDeviceID)
+	return c.sinkerApiRequest(http.MethodPost, c.config.StoreEventPath, requestBytes, sinkerAPIDeviceID)
 }

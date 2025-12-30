@@ -52,7 +52,7 @@ func run() error {
 		return fmt.Errorf("sinker register device: %v",err)
 	}
 
-	// TODO sync before watching
+	// TODO: sync before watching
 
 	fsNotifyWatcher, err := fsnotify.NewWatcher()
 	if err != nil {

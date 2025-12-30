@@ -22,8 +22,7 @@ type device struct {
 }
 
 func (c *APIClient) RegisterDevice() (string, error) {
-	request := deviceRequest{Name: deviceName}
-	requestBytes, err := json.Marshal(request)
+	requestBytes, err := json.Marshal(deviceRequest{Name: deviceName})
 	if err != nil {
 		return "", fmt.Errorf("json marshal: %v", err)
 	}
