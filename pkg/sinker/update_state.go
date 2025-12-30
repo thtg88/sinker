@@ -3,6 +3,7 @@ package sinker
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/fsnotify/fsnotify"
 
@@ -25,5 +26,5 @@ func (c *APIClient) UpdateState(event fsnotify.Event, sinkerAPIDeviceID string) 
 		return nil, fmt.Errorf("json marshal: %v", err)
 	}
 
-	return c.sinkerApiRequest("POST", c.config.StoreEventPath, jsonValue, sinkerAPIDeviceID)
+	return c.sinkerApiRequest(http.MethodPost, c.config.StoreEventPath, jsonValue, sinkerAPIDeviceID)
 }
