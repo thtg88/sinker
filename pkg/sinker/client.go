@@ -30,11 +30,12 @@ func NewAPIClient(httpClient *http.Client, cfg *config.SinkerAPI) *APIClient {
 
 func (c *APIClient) sinkerApiRequest(method string, uri string, requestBody []byte, sinkerAPIDeviceID string) ([]byte, error) {
 	url := fmt.Sprint(c.config.BaseURL, uri)
+	// TODO: replace with logger
 	fmt.Println("URL:>", url)
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("http newrequest: %v", err)
 	}
 
 	req.Header.Set(c.config.HeaderNames.APIKey, c.config.APIKey)
@@ -43,14 +44,16 @@ func (c *APIClient) sinkerApiRequest(method string, uri string, requestBody []by
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
+	// TODO: replace with logger
 	// fmt.Println("request Headers:", req.Header)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("client do: %v", err)
+		return nil, fmt.Errorf("httpclient do: %v", err)
 	}
 	defer resp.Body.Close()
 
+	// TODO: replace with logger
 	fmt.Println("response Status:", resp.Status)
 
 	body, err := io.ReadAll(resp.Body)
@@ -58,6 +61,7 @@ func (c *APIClient) sinkerApiRequest(method string, uri string, requestBody []by
 		return nil, fmt.Errorf("io readall: %v", err)
 	}
 
+	// TODO: replace with logger
 	fmt.Println("response Body:", string(body))
 
 	return body, nil

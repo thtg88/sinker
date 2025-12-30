@@ -16,11 +16,15 @@ type FileUploader interface {
 }
 
 type S3FileUploader struct {
-	s3Client *s3.Client
+	bucket		string
+	s3Client	*s3.Client
 }
 
-func NewS3FileUploader(s3Client *s3.Client) *S3FileUploader {
-	return &S3FileUploader{s3Client: s3Client}
+func NewS3FileUploader(s3Client *s3.Client, bucket string) *S3FileUploader {
+	return &S3FileUploader{
+		bucket:		bucket,
+		s3Client:	s3Client,
+	}
 }
 
 // UploadFile uploads a file from a given absolute path to the S3 bucket
@@ -32,7 +36,7 @@ func (u *S3FileUploader) UploadFile(ctx context.Context, path string) error {
 	}
 
 	_, err = u.s3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(os.Getenv("AWS_BUCKET")),
+		Bucket: aws.String(u.bucket),
 		Key:    aws.String(RelativePath(path)),
 		Body:   file,
 	})
@@ -47,7 +51,7 @@ func (u *S3FileUploader) UploadFile(ctx context.Context, path string) error {
 // specified by the AWS_BUCKET env variable
 func (u *S3FileUploader) RemoveFile(ctx context.Context, path string) error {
 	_, err := u.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
-		Bucket: aws.String(os.Getenv("AWS_BUCKET")),
+		Bucket: aws.String(u.bucket),
 		Key:    aws.String(RelativePath(path)),
 	})
 	if err != nil {

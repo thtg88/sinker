@@ -8,7 +8,8 @@ type Config struct{
 }
 
 type Sinker struct{
-	BasePath string
+	BasePath			string
+	S3BucketName	string
 }
 
 type SinkerAPI struct {
@@ -29,7 +30,8 @@ type SinkerAPIHeaderNames struct {
 func Load() *Config {
 	return &Config{
 		Sinker: &Sinker{
-			BasePath: os.Getenv("SINKER_BASE_PATH"),
+			BasePath:			os.Getenv("SINKER_BASE_PATH"),
+			S3BucketName:	os.Getenv("AWS_BUCKET"),
 		},
 		SinkerAPI: &SinkerAPI{
 			APIKey:						os.Getenv("SINKER_API_KEY_HEADER_VALUE"),
