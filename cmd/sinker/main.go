@@ -75,8 +75,7 @@ func run() error {
 				handler.Handle(event, sinkerAPIDeviceID)
 
 			case err := <-fsNotifyWatcher.Errors:
-				// TODO: replace with logger
-				fmt.Println("ERROR", err)
+				logger.Printf("[ERROR] fsnotifywatcher: %v", err)
 			}
 		}
 	}()
