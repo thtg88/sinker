@@ -2,52 +2,62 @@ package uploaders
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
+type FileUploader interface {
+	RemoveFile(ctx context.Context, path string) error
+	UploadFile(ctx context.Context, path string) error
+}
+
+type S3FileUploader struct {
+	s3Client *s3.Client
+}
+
+func NewS3FileUploader(s3Client *s3.Client) *S3FileUploader {
+	return &S3FileUploader{s3Client: s3Client}
+}
+
 // UploadFile uploads a file from a given absolute path to the S3 bucket
 // specified by the AWS_BUCKET env variable
-func UploadFile(path string) (*s3.PutObjectOutput, error) {
+func (u *S3FileUploader) UploadFile(ctx context.Context, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, errors.New("could not open path")
+		return fmt.Errorf("os open: %v", err)
 	}
 
-	return s3Client().PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err = u.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(os.Getenv("AWS_BUCKET")),
 		Key:    aws.String(RelativePath(path)),
 		Body:   file,
 	})
+	if err != nil {
+		return fmt.Errorf("s3 client putobject: %v", err)
+	}
+
+	return nil
 }
 
 // RemoveFile removes a file from a given absolute path from the S3 bucket
 // specified by the AWS_BUCKET env variable
-func RemoveFile(path string) (*s3.DeleteObjectOutput, error) {
-	return s3Client().DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+func (u *S3FileUploader) RemoveFile(ctx context.Context, path string) error {
+	_, err := u.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(os.Getenv("AWS_BUCKET")),
 		Key:    aws.String(RelativePath(path)),
 	})
+	if err != nil {
+		return fmt.Errorf("s3 client deleteobject: %v", err)
+	}
+
+	return nil
 }
 
 // RelativePath returns the relative path of a file from a given aboslute path string
 func RelativePath(path string) string {
 	return strings.Trim(strings.Replace(path, os.Getenv("SINKER_BASE_PATH"), "", 1), "/")
-}
-
-// s3Client returns a new S3 client
-func s3Client() *s3.Client {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		panic(err)
-	}
-
-	return s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.Region = "eu-west-1"
-	})
 }

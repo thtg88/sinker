@@ -1,16 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/fsnotify/fsnotify"
 	"github.com/joho/godotenv"
 
 	"github.com/thtg88/sinker/internal/config"
 	"github.com/thtg88/sinker/internal/handlers"
+	"github.com/thtg88/sinker/internal/uploaders"
 	"github.com/thtg88/sinker/internal/watchers"
 	"github.com/thtg88/sinker/pkg/sinker"
 )
@@ -34,7 +38,15 @@ func run() error {
 	cfg := config.Load()
 	httpClient := &http.Client{}
 	sinkerAPIClient := sinker.NewAPIClient(httpClient, cfg.SinkerAPI)
-	handler := handlers.NewFSEventHandler(sinkerAPIClient)
+
+	s3Config, err := awsconfig.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return fmt.Errorf("awsconfig loaddefaultconfig: %v", err)
+	}
+
+	s3Client := s3.NewFromConfig(s3Config, func(o *s3.Options) { o.Region = "eu-west-1" })
+	fileUploader := uploaders.NewS3FileUploader(s3Client)
+	handler := handlers.NewFSEventHandler(fileUploader, sinkerAPIClient)
 
 	sinkerAPIDeviceID, err = sinkerAPIClient.RegisterDevice()
 	if err != nil {

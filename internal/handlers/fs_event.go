@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fsnotify/fsnotify"
@@ -10,11 +11,15 @@ import (
 )
 
 type FSEventHandler struct {
-	sinkerAPI sinker.API
+	fileUploader	uploaders.FileUploader
+	sinkerAPI			sinker.API
 }
 
-func NewFSEventHandler(sinkerAPI sinker.API) *FSEventHandler {
-	return &FSEventHandler{sinkerAPI: sinkerAPI}
+func NewFSEventHandler(fileUploader uploaders.FileUploader, sinkerAPI sinker.API) *FSEventHandler {
+	return &FSEventHandler{
+		fileUploader: fileUploader,
+		sinkerAPI: sinkerAPI,
+	}
 }
 
 // HandleFsEvent handles a file system event, uploading a file to S3,
@@ -27,29 +32,35 @@ func (h *FSEventHandler) Handle(event fsnotify.Event, sinkerAPIDeviceID string) 
 		return
 	}
 
+	ctx := context.Background()
+
+	// TODO: replace with logger
 	fmt.Printf("EVENT! %#v\n", event.String())
 
 	if event.Op.String() == "CREATE" {
-		_, err = uploaders.UploadFile(event.Name)
+		err = h.fileUploader.UploadFile(ctx, event.Name)
 	}
 
 	if event.Op.String() == "REMOVE" {
-		_, err = uploaders.RemoveFile(event.Name)
+		err = h.fileUploader.RemoveFile(ctx, event.Name)
 	}
 
 	if event.Op.String() == "WRITE" {
-		_, err = uploaders.UploadFile(event.Name)
+		err = h.fileUploader.UploadFile(ctx, event.Name)
 	}
 
 	if err != nil {
+		// TODO: replace with logger
 		fmt.Println("ERROR", err, event.Name)
 		return
 	}
 
 	_, err = h.sinkerAPI.UpdateState(event, sinkerAPIDeviceID)
 	if err != nil {
+		// TODO: replace with logger
 		fmt.Println("ERROR", err, event.Name)
 	}
 
+	// TODO: replace with logger
 	fmt.Println("file updated", event.Name)
 }
